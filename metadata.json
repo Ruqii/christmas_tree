@@ -1,0 +1,7 @@
+{
+  "name": "Magical Hand-Controlled Christmas Tree",
+  "description": "A real-time festive particle system controlled by hand gestures. Open your hand to scatter particles, close your fist to form a magical Christmas tree.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
