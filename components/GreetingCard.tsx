@@ -69,7 +69,7 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen }) => {
         </div>
 
         {/* --- Center Typography --- */}
-        <div className="flex-1 flex flex-col items-center justify-start z-20 pt-20">
+        <div className="flex-1 flex flex-col items-center justify-center z-20 translate-y-10">
            <h1 className="text-5xl md:text-7xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] text-center whitespace-nowrap" style={{ fontFamily: '"Great Vibes", cursive' }}>
              Merry Christmas
            </h1>
