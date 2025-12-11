@@ -11,9 +11,20 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Environment variables and secrets
 .env
-.env.local
+.env.*
+!.env.example
 .vercel
+
+# API keys and sensitive data
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
 
 # Editor directories and files
 .vscode/*

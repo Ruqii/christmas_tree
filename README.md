@@ -48,7 +48,7 @@ Just your hands (or auto-play if camera isn't available).
 
 ### Local Development
 
-**Prerequisites:** Node.js
+**Prerequisites:** Node.js 18.x or later
 
 1. **Install dependencies:**
    ```bash

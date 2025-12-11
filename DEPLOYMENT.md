@@ -12,7 +12,7 @@
 
 | 变量名 | 值 |
 |--------|-----|
-| `RESEND_API_KEY` | `re_hqCZBywC_HBRvgaTTUffwTDSDv5MBqBHn` |
+| `RESEND_API_KEY` | `your_resend_api_key` |
 | `PUBLIC_URL` | `https://christmas-tree-jade.vercel.app` |
 
 ### 2. 部署代码
@@ -46,7 +46,7 @@ vercel --prod
 
 `.env` 和 `.env.local` 中都应该有：
 ```env
-RESEND_API_KEY=re_hqCZBywC_HBRvgaTTUffwTDSDv5MBqBHn
+RESEND_API_KEY=your_resend_api_key
 PUBLIC_URL=https://christmas-tree-jade.vercel.app
 ```
 

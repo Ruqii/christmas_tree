@@ -16,6 +16,11 @@
   - ✅ README.md 已更新部署说明
   - ✅ 代码中的 localhost 仅作为后备使用
 
+- [x] **Node.js 版本配置**
+  - ✅ `package.json` 指定 `"engines": { "node": "18.x" }`
+  - ✅ `.nvmrc` 文件已创建（指定 Node.js 18）
+  - ✅ `vercel.json` 使用 `@vercel/node@3.0.7` (支持 Node.js 18.x)
+
 - [x] **环境变量配置**
   - ✅ `.env.example` 文件已创建（模板）
   - ✅ `.env` 和 `.env.local` 在 `.gitignore` 中
@@ -38,7 +43,7 @@
 
 | 变量名 | 值 | 状态 |
 |--------|-----|------|
-| `RESEND_API_KEY` | `re_hqCZBywC_HBRvgaTTUffwTDSDv5MBqBHn` | ⚠️ **待添加** |
+| `RESEND_API_KEY` | `your_resend_api_key` | ⚠️ **待添加** |
 | `PUBLIC_URL` | `https://christmas-tree-jade.vercel.app` | ⚠️ **待添加** |
 
 **或使用 Vercel CLI：**
@@ -47,7 +52,7 @@
 # 添加 RESEND_API_KEY
 vercel env add RESEND_API_KEY
 # 选择：Production, Preview, Development (全选)
-# 输入：re_hqCZBywC_HBRvgaTTUffwTDSDv5MBqBHn
+# 输入：your_resend_api_key
 
 # 添加 PUBLIC_URL
 vercel env add PUBLIC_URL
