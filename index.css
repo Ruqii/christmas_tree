@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #050510;
+  color: white;
+}
+
+canvas {
+  display: block;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}

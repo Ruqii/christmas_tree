@@ -7,25 +7,28 @@ interface GestureControllerProps {
   onGestureChange?: (gesture: GestureState) => void;
   onSwipe?: () => void;
   mode: DetectionMode;
+  onCameraError?: () => void;
 }
 
-const GestureController: React.FC<GestureControllerProps> = ({ onGestureChange, onSwipe, mode }) => {
+const GestureController: React.FC<GestureControllerProps> = ({ onGestureChange, onSwipe, mode, onCameraError }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Refs to track props without re-triggering effect
   const modeRef = useRef(mode);
   const onGestureChangeRef = useRef(onGestureChange);
   const onSwipeRef = useRef(onSwipe);
+  const onCameraErrorRef = useRef(onCameraError);
 
   // Update refs when props change
   useEffect(() => {
     modeRef.current = mode;
     onGestureChangeRef.current = onGestureChange;
     onSwipeRef.current = onSwipe;
-  }, [mode, onGestureChange, onSwipe]);
+    onCameraErrorRef.current = onCameraError;
+  }, [mode, onGestureChange, onSwipe, onCameraError]);
 
   // Buffers
   const gestureBuffer = useRef<GestureState[]>([]);
@@ -38,9 +41,12 @@ const GestureController: React.FC<GestureControllerProps> = ({ onGestureChange, 
   useEffect(() => {
     // MediaPipe Hands and Camera are loaded globally via <script> tags in index.html
     const MP = (window as any);
-    
+
     if (!MP.Hands || !MP.Camera) {
       setError("MediaPipe libraries not loaded");
+      if (onCameraErrorRef.current) {
+        onCameraErrorRef.current();
+      }
       return;
     }
 
@@ -80,6 +86,10 @@ const GestureController: React.FC<GestureControllerProps> = ({ onGestureChange, 
         .catch((err: any) => {
            console.error("Camera start error:", err);
            setError("Camera access denied or failed");
+           // Trigger fallback mode
+           if (onCameraErrorRef.current) {
+             onCameraErrorRef.current();
+           }
         });
     }
 

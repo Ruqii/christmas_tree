@@ -2,6 +2,9 @@ import React from 'react';
 
 interface GreetingCardProps {
   isOpen: boolean;
+  to?: string;
+  from?: string;
+  message?: string;
 }
 
 // Simple Snowflake SVG Component
@@ -23,7 +26,7 @@ const Snowflake: React.FC<{ className?: string, size?: number, opacity?: number 
   </svg>
 );
 
-const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen }) => {
+const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen, to, from, message }) => {
   return (
     <div 
       className={`absolute inset-0 z-50 flex items-center justify-center transition-all duration-1000 ease-in-out origin-left ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
@@ -69,11 +72,18 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen }) => {
         </div>
 
         {/* --- Center Typography --- */}
-        <div className="flex-1 flex flex-col items-center justify-center z-20 translate-y-10">
+        <div className="flex-1 flex flex-col items-center justify-center z-20 translate-y-10 px-4">
+           {/* Dear {to} */}
+           {to && (
+             <p className="text-white text-xl md:text-2xl mb-4 font-light">
+               Dear {to},
+             </p>
+           )}
+
            <h1 className="text-5xl md:text-7xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] text-center whitespace-nowrap" style={{ fontFamily: '"Great Vibes", cursive' }}>
              Merry Christmas
            </h1>
-           
+
            {/* AND Line */}
            <div className="flex items-center gap-4 w-48 md:w-64 my-2 opacity-90">
              <div className="h-[1px] bg-white flex-1"></div>
@@ -82,9 +92,23 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen }) => {
            </div>
 
            {/* HAPPY NEW YEAR */}
-           <h2 className="text-white text-lg md:text-2xl font-light tracking-[0.3em] font-sans drop-shadow-sm text-center">
+           <h2 className="text-white text-lg md:text-2xl font-light tracking-[0.3em] font-sans drop-shadow-sm text-center mb-6">
              HAPPY NEW YEAR
            </h2>
+
+           {/* Personal Message */}
+           {message && (
+             <p className="text-white/90 text-base md:text-lg max-w-md text-center leading-relaxed mb-4 px-4">
+               {message}
+             </p>
+           )}
+
+           {/* From signature */}
+           {from && (
+             <p className="text-white/80 text-sm md:text-base italic">
+               - {from}
+             </p>
+           )}
         </div>
 
         {/* --- Bottom Illustration (The Pink House) --- */}
