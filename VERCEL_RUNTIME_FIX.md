@@ -43,25 +43,27 @@
 
 ## 解决方案
 
-### ✅ 更新到现代 Vercel Runtime
+### ✅ 让 Vercel 自动检测 Runtime
 
-**1. 更新 `vercel.json`**
+**1. 更新 `vercel.json` - 移除 functions 配置**
 
 ```json
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x"  // ✅ 使用现代 runtime 语法
-    }
-  }
+  "outputDirectory": "dist"
+  // ✅ 移除 functions 配置，让 Vercel 自动检测
 }
 ```
 
 **变更说明：**
-- ❌ 删除：`"runtime": "@vercel/node@3.0.7"`
-- ✅ 使用：`"runtime": "nodejs20.x"`
+- ❌ 删除整个 `functions` 配置块（包括过时的 `@vercel/node@3.0.7`）
+- ✅ Vercel 会自动检测 `/api` 目录下的 TypeScript 文件
+- ✅ Vercel 根据 `package.json` 的 `engines` 字段选择 Node.js 20.x
+
+**为什么这样做？**
+- `nodejs20.x` 语法仅在生产部署时有效
+- 本地 `vercel dev` 不支持这种简化语法
+- 自动检测在本地和生产环境都能正常工作
 
 **2. 更新 `package.json`**
 
@@ -126,8 +128,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 ## 现代 Vercel Runtime 语法
 
-### 推荐方式（我们采用的）
+### 推荐方式（我们采用的）✅
 
+**完全省略 functions 配置，让 Vercel 自动检测：**
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
+```
+
+Vercel 会自动：
+- 检测 `/api` 目录下的 TypeScript 文件
+- 根据 `package.json` 的 `engines.node` 字段选择 Node.js 20.x
+- 在本地 `vercel dev` 和生产环境都能正常工作
+
+### 其他可选方式
+
+**1. 指定 runtime（仅生产环境有效）**
 ```json
 {
   "functions": {
@@ -137,38 +156,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 ```
+⚠️ **问题**：本地 `vercel dev` 不支持此语法，会报错
 
-### 其他可选方式
-
-**1. 不指定 runtime（自动检测）**
-```json
-{
-  "functions": {
-    "api/**/*.ts": {}
-  }
-}
-```
-Vercel 会根据 `package.json` 的 `engines` 字段自动选择。
-
-**2. 使用最新版本**
+**2. 使用包名+版本格式**
 ```json
 {
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs22.x"  // 如果需要 Node.js 22
+      "runtime": "vercel-node@3.1.0"
     }
   }
 }
 ```
-
-**3. 完全省略 functions 配置**
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
-}
-```
-Vercel 会自动检测 `/api` 目录并使用适当的 runtime。
+⚠️ **不推荐**：老式语法，维护困难
 
 ---
 
@@ -177,17 +177,22 @@ Vercel 会自动检测 `/api` 目录并使用适当的 runtime。
 ### 已完成的更改 ✅
 
 1. **vercel.json**
-   - 从 `@vercel/node@3.0.7` 更新为 `nodejs20.x`
+   - ❌ 删除了过时的 `functions` 配置（包含 `@vercel/node@3.0.7`）
+   - ✅ 简化为仅包含 `buildCommand` 和 `outputDirectory`
+   - ✅ Vercel 现在自动检测 API functions
 
 2. **package.json**
-   - `engines.node` 从 `18.x` 更新为 `20.x`
+   - ✅ 添加 `"engines": { "node": "20.x" }`
+   - ✅ Vercel 根据此字段选择 Node.js 版本
 
 3. **.nvmrc**
-   - 从 `18` 更新为 `20`
+   - ✅ 设置为 `20`
+   - ✅ 用于本地开发环境
 
 4. **文档更新**
    - README.md - 前置要求更新为 Node.js 20.x
    - PRE_DEPLOYMENT_CHECKLIST.md - 更新版本检查项
+   - VERCEL_RUNTIME_FIX.md - 详细说明修复过程
 
 ### 不需要更改的文件 ✅
 
@@ -317,14 +322,20 @@ vercel --prod
 ## 总结
 
 ✅ **问题已解决：**
-- 从过时的 `@vercel/node@3.0.7` 迁移到现代 `nodejs20.x`
+- 删除了过时的 `@vercel/node@3.0.7` runtime 配置
+- 改用 Vercel 自动检测（基于 `package.json` 的 `engines` 字段）
 - 更新所有配置文件以匹配 Node.js 20.x
 - 验证了代码兼容性
 
 ✅ **优势：**
-- 使用 Vercel 推荐的现代 runtime
+- 同时支持本地 `vercel dev` 和生产部署
+- 配置简化，维护更容易
+- Vercel 自动选择最佳 runtime 版本
 - 获得更好的性能和安全性
 - 与最新的 JavaScript/TypeScript 特性兼容
 - 长期支持保证
 
-🚀 **现在可以成功部署到 Vercel！**
+✅ **现在应该可以正常运行：**
+- ✅ `npm start` (本地开发)
+- ✅ `vercel --prod` (生产部署)
+- ✅ GitHub push 自动部署

@@ -19,7 +19,7 @@
 - [x] **Node.js 版本配置**
   - ✅ `package.json` 指定 `"engines": { "node": "20.x" }`
   - ✅ `.nvmrc` 文件已创建（指定 Node.js 20）
-  - ✅ `vercel.json` 使用现代 runtime `nodejs20.x`
+  - ✅ `vercel.json` 移除 runtime 配置，使用自动检测
 
 - [x] **环境变量配置**
   - ✅ `.env.example` 文件已创建（模板）
