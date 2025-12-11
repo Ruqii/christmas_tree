@@ -17,9 +17,9 @@
   - ✅ 代码中的 localhost 仅作为后备使用
 
 - [x] **Node.js 版本配置**
-  - ✅ `package.json` 指定 `"engines": { "node": "18.x" }`
-  - ✅ `.nvmrc` 文件已创建（指定 Node.js 18）
-  - ✅ `vercel.json` 使用 `@vercel/node@3.0.7` (支持 Node.js 18.x)
+  - ✅ `package.json` 指定 `"engines": { "node": "20.x" }`
+  - ✅ `.nvmrc` 文件已创建（指定 Node.js 20）
+  - ✅ `vercel.json` 使用现代 runtime `nodejs20.x`
 
 - [x] **环境变量配置**
   - ✅ `.env.example` 文件已创建（模板）
