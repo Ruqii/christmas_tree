@@ -17,8 +17,8 @@ const CardPage: React.FC = () => {
 
   // Extract URL parameters with defaults
   const to = searchParams.get('to') || 'Friend';
-  const from = searchParams.get('from') || 'Someone Special';
-  const message = searchParams.get('msg') || 'Wishing you a magical holiday season!';
+  const from = searchParams.get('from') || '';
+  const message = searchParams.get('msg') || '';
 
   // Show instructions when card opens (in gesture control mode)
   React.useEffect(() => {

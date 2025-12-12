@@ -63,6 +63,17 @@ canvas {
   }
 }
 
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+    opacity: 0.95;
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out;
 }
@@ -77,4 +88,8 @@ canvas {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 2.5s ease-in-out infinite;
 }
