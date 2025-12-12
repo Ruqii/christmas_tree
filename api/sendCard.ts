@@ -10,12 +10,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { recipientEmail, senderName, message } = req.body;
+    const { recipientEmail, recipientName, senderName, message } = req.body;
 
     // Basic validation
-    if (!recipientEmail || !senderName || !message) {
+    if (!recipientEmail || !recipientName || !senderName) {
       return res.status(400).json({
-        error: 'Missing required fields: recipientEmail, senderName, and message are required',
+        error: 'Missing required fields: recipientEmail, recipientName, and senderName are required',
       });
     }
 
@@ -26,8 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Sanitize inputs (basic)
+    const sanitizedRecipientName = recipientName.trim().slice(0, 100);
     const sanitizedSenderName = senderName.trim().slice(0, 100);
-    const sanitizedMessage = message.trim().slice(0, 500);
+    const sanitizedMessage = message ? message.trim().slice(0, 500) : '';
 
     // Get the base URL - use PUBLIC_URL env var if set, otherwise use request host
     const baseUrl = process.env.PUBLIC_URL || (() => {

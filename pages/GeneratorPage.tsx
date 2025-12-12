@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const GeneratorPage: React.FC = () => {
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [recipientName, setRecipientName] = useState('');
   const [senderName, setSenderName] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,7 @@ const GeneratorPage: React.FC = () => {
         },
         body: JSON.stringify({
           recipientEmail,
+          recipientName,
           senderName,
           message,
         }),
@@ -36,6 +38,7 @@ const GeneratorPage: React.FC = () => {
       setSuccess(true);
       // Reset form
       setRecipientEmail('');
+      setRecipientName('');
       setSenderName('');
       setMessage('');
     } catch (err: any) {
@@ -77,6 +80,22 @@ const GeneratorPage: React.FC = () => {
               />
             </div>
 
+            {/* Recipient Name */}
+            <div>
+              <label htmlFor="recipientName" className="block text-sm font-medium text-gray-300 mb-1">
+                Recipient Name *
+              </label>
+              <input
+                type="text"
+                id="recipientName"
+                required
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Friend's name"
+              />
+            </div>
+
             {/* Sender Name */}
             <div>
               <label htmlFor="senderName" className="block text-sm font-medium text-gray-300 mb-1">
@@ -96,16 +115,15 @@ const GeneratorPage: React.FC = () => {
             {/* Message */}
             <div>
               <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
-                Personal Message *
+                Personal Message (optional)
               </label>
               <textarea
                 id="message"
-                required
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                placeholder="Write your holiday wishes here..."
+                placeholder="Write your holiday wishes here (optional)..."
               />
             </div>
 
