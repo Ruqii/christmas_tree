@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import ParticleCanvas from '../components/ParticleCanvas';
 import GestureController from '../components/GestureController';
 import GreetingCard from '../components/GreetingCard';
+import GestureInstructions from '../components/GestureInstructions';
 import { GestureState } from '../types';
 
 const CardPage: React.FC = () => {
@@ -12,11 +13,19 @@ const CardPage: React.FC = () => {
   const [currentGesture, setCurrentGesture] = useState<GestureState>(GestureState.IDLE);
   const [activeMode, setActiveMode] = useState<GestureState>(GestureState.SCATTER);
   const [fallbackMode, setFallbackMode] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Extract URL parameters with defaults
   const to = searchParams.get('to') || 'Friend';
   const from = searchParams.get('from') || 'Someone Special';
   const message = searchParams.get('msg') || 'Wishing you a magical holiday season!';
+
+  // Show instructions when card opens (in gesture control mode)
+  React.useEffect(() => {
+    if (isCardOpen && !fallbackMode) {
+      setShowInstructions(true);
+    }
+  }, [isCardOpen, fallbackMode]);
 
   // Auto-play animation in fallback mode
   React.useEffect(() => {
@@ -56,19 +65,6 @@ const CardPage: React.FC = () => {
   const handleCameraError = () => {
     console.log('Camera failed, enabling fallback mode');
     setFallbackMode(true);
-  };
-
-  const getStatusText = () => {
-    switch (currentGesture) {
-      case GestureState.TREE:
-        return "Detecting: Fist (Tree Mode)";
-      case GestureState.SCATTER:
-        return "Detecting: Open Hand (Scatter Mode)";
-      case GestureState.POINTING:
-        return "Detecting: Pointing (Swipe to Close)";
-      default:
-        return "Detecting: ...";
-    }
   };
 
   const getModeText = () => {
@@ -136,19 +132,6 @@ const CardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Right Instructions */}
-          <div className="absolute bottom-8 right-8 flex flex-col items-end gap-3 pointer-events-none z-10 animate-fade-in-up">
-            <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg">
-              <p className="text-sm font-mono text-gray-200">
-                {getStatusText()}
-              </p>
-            </div>
-            <div className="space-y-2 text-right text-white/60 text-sm hidden md:block bg-black/20 p-3 rounded-xl border border-white/5 backdrop-blur-sm">
-              <p><span className="text-white">Close Fist</span> to form Tree</p>
-              <p><span className="text-white">Open Hand</span> to Scatter</p>
-              <p><span className="text-white">Point + Swipe</span> to Close Card</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -167,6 +150,15 @@ const CardPage: React.FC = () => {
           onGestureChange={handleGestureChange}
           onSwipe={handleSwipe}
           onCameraError={handleCameraError}
+        />
+      )}
+
+      {/* --- LAYER 4: Gesture Instructions (Only in gesture mode when card is open) --- */}
+      {!fallbackMode && (
+        <GestureInstructions
+          currentGesture={currentGesture}
+          activeMode={activeMode}
+          isVisible={showInstructions}
         />
       )}
 

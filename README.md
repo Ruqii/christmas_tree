@@ -65,15 +65,20 @@ Just your hands (or auto-play if camera isn't available).
 
 3. **Run the development server:**
    ```bash
-   npm start
+   npm run dev:full
    ```
-   Opens on **port 3000** (Vercel dev with API support)
+   This starts both:
+   - Frontend (Vite): http://localhost:5173 with hot reload
+   - Backend (Vercel): http://localhost:3000 for API
 
 4. **Test the app:**
-   - Generator: http://localhost:3000
-   - Card viewer: http://localhost:3000/card?to=Friend&from=You&msg=Hello
+   - Open: http://localhost:5173
+   - Generator page: http://localhost:5173/
+   - Card viewer: http://localhost:5173/card?to=Friend&from=You&msg=Hello
 
    **First time:** Vercel CLI will prompt you to login (free, takes 30 seconds)
+
+   **See [LOCAL_DEV_GUIDE.md](LOCAL_DEV_GUIDE.md) for detailed development setup**
 
 ### Production Deployment
 

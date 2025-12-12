@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "dev:api": "vercel dev --listen 3000",
+    "dev:full": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "start": "vercel dev",
     "build": "vite build",
     "preview": "vite preview"
