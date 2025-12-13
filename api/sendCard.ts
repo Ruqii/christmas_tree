@@ -1,7 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
@@ -10,7 +16,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { recipientEmail, recipientName, senderName, message } = req.body;
+    const { sessionId } = req.body;
+
+    // Require sessionId for paywall
+    if (!sessionId) {
+      return res.status(403).json({ error: 'Session ID required' });
+    }
+
+    // Validate session from Supabase
+    const { data: session, error: dbError } = await supabase
+      .from('ecard_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
+    if (dbError || !session) {
+      return res.status(404).json({ error: 'Invalid session' });
+    }
+
+    if (session.status === 'completed') {
+      return res.status(200).json({
+        success: true,
+        message: 'Card already sent',
+        alreadySent: true,
+      });
+    }
+
+    // Extract payload
+    const { recipientEmail, recipientName, senderName, message } = session.payload;
 
     // Basic validation
     if (!recipientEmail || !recipientName || !senderName) {
@@ -38,11 +71,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })();
 
     // Build card URL with parameters
-    const cardUrl = `${baseUrl}/card?${new URLSearchParams({
-      to: recipientEmail.split('@')[0], // Use email username as recipient name
+    const urlParams = new URLSearchParams({
+      to: sanitizedRecipientName,
       from: sanitizedSenderName,
-      msg: sanitizedMessage,
-    })}`;
+    });
+
+    // Only add message if it exists
+    if (sanitizedMessage) {
+      urlParams.append('msg', sanitizedMessage);
+    }
+
+    const cardUrl = `${baseUrl}/card?${urlParams}`;
 
     // Background image URL - use base URL
     const bgImageUrl = `${baseUrl}/email-assets/email-bg.jpg`;
@@ -83,16 +122,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         </h1>
 
                         <!-- Subtext -->
-                        <p style="margin: 0 0 35px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #4A4A4A; text-align: center;">
+                        <p style="margin: 0 0 ${sanitizedMessage ? '35px' : '40px'} 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #4A4A4A; text-align: center;">
                           <strong style="color: #2E2E2E;">${sanitizedSenderName}</strong> has sent you a magical, interactive Christmas card.
                         </p>
 
+                        ${sanitizedMessage ? `
                         <!-- Personal Message (Quote) -->
                         <div style="margin: 0 0 40px 0; padding: 20px 0 20px 24px; border-left: 2px solid #d4af37;">
                           <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; line-height: 1.7; color: #2E2E2E; font-style: italic; text-align: left;">
                             "${sanitizedMessage}"
                           </p>
                         </div>
+                        ` : ''}
 
                         <!-- CTA Button -->
                         <div style="text-align: center; margin-bottom: 30px;">
@@ -141,6 +182,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
+
+    // Mark session as completed
+    await supabase
+      .from('ecard_sessions')
+      .update({
+        status: 'completed',
+        card_url: cardUrl,
+      })
+      .eq('id', sessionId);
 
     return res.status(200).json({
       success: true,

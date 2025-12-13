@@ -16,7 +16,7 @@ const GeneratorPage: React.FC = () => {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/sendCard', {
+      const response = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,18 +32,17 @@ const GeneratorPage: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send card');
+        throw new Error(data.error || 'Failed to create checkout');
       }
 
-      setSuccess(true);
-      // Reset form
-      setRecipientEmail('');
-      setRecipientName('');
-      setSenderName('');
-      setMessage('');
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
-    } finally {
       setLoading(false);
     }
   };
@@ -127,15 +126,6 @@ const GeneratorPage: React.FC = () => {
               />
             </div>
 
-            {/* Success Message */}
-            {success && (
-              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
-                <p className="text-green-300 text-sm text-center">
-                  Card sent successfully! 🎄
-                </p>
-              </div>
-            )}
-
             {/* Error Message */}
             {error && (
               <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
@@ -151,7 +141,7 @@ const GeneratorPage: React.FC = () => {
               disabled={loading}
               className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold rounded-lg shadow-lg transform hover:scale-105 disabled:hover:scale-100 transition-all duration-200 disabled:cursor-not-allowed"
             >
-              {loading ? 'Sending...' : 'Send Card'}
+              {loading ? 'Processing...' : 'Pay & Send Card (£1.99)'}
             </button>
           </form>
         </div>
