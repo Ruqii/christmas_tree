@@ -1,13 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const GeneratorPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const processedSessionRef = useRef<string | null>(null);
+
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [senderName, setSenderName] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sendingCard, setSendingCard] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [cancelled, setCancelled] = useState(false);
+
+  // Handle payment success callback from Stripe
+  useEffect(() => {
+    const sessionId = searchParams.get('id');
+    const stripeSessionId = searchParams.get('session_id');
+    const cancelledParam = searchParams.get('cancelled');
+
+    // Handle cancellation
+    if (cancelledParam === 'true') {
+      setCancelled(true);
+      // Clear URL params
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // Handle successful payment - only process once per session
+    if (sessionId && stripeSessionId && processedSessionRef.current !== sessionId) {
+      processedSessionRef.current = sessionId;
+
+      const sendCard = async () => {
+        setSendingCard(true);
+        try {
+          const response = await fetch('/api/sendCard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to send card');
+          }
+
+          setCardUrl(data.cardUrl);
+          setSuccess(true);
+          setSendingCard(false);
+
+          // Clear URL params after a short delay to ensure state is set
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 100);
+        } catch (err: any) {
+          console.error('Error sending card:', err);
+          setError(err.message || 'Failed to send card');
+          setSendingCard(false);
+          navigate('/', { replace: true });
+        }
+      };
+
+      sendCard();
+    }
+  }, [searchParams, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +107,69 @@ const GeneratorPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const resetForm = () => {
+    setRecipientEmail('');
+    setRecipientName('');
+    setSenderName('');
+    setMessage('');
+    setSuccess(false);
+    setError(null);
+    setCardUrl(null);
+    setCancelled(false);
+  };
+
+  // Show sending state after payment
+  if (sendingCard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205] flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl text-center">
+            <div className="text-6xl mb-4">📧</div>
+            <h2 className="text-3xl font-bold text-white mb-4">Sending...</h2>
+            <p className="text-gray-300">
+              Sending your Christmas card, please wait...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show success state
+  if (success && cardUrl) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205] flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-3xl font-bold text-white mb-4">Payment Successful!</h2>
+            <p className="text-gray-300 mb-6">
+              Your Christmas card has been sent!
+            </p>
+
+            {/* Card Preview Link */}
+            <a
+              href={cardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full px-6 py-3 mb-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold rounded-lg transform hover:scale-105 transition-all duration-200"
+            >
+              Preview Card
+            </a>
+
+            {/* Send Another Card Button */}
+            <button
+              onClick={resetForm}
+              className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              Send Another Card
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205] flex items-center justify-center p-4">
@@ -125,6 +249,15 @@ const GeneratorPage: React.FC = () => {
                 placeholder="Write your holiday wishes here (optional)..."
               />
             </div>
+
+            {/* Cancelled Message */}
+            {cancelled && (
+              <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
+                <p className="text-yellow-300 text-sm text-center">
+                  Payment cancelled. You can fill out the form and try again.
+                </p>
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (

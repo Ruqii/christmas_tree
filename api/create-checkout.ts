@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-11-17.clover',
 });
 
 const supabase = createClient(
@@ -72,8 +72,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       ],
       mode: 'payment',
-      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&id=${sessionRecord.id}`,
-      cancel_url: `${baseUrl}/cancel`,
+      success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&id=${sessionRecord.id}`,
+      cancel_url: `${baseUrl}/?cancelled=true`,
       metadata: {
         ecard_session_id: sessionRecord.id,
       },

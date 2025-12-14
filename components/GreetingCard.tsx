@@ -102,13 +102,6 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen, to, from, message }
                {message}
              </p>
            )}
-
-           {/* From signature */}
-           {from && (
-             <p className="text-white/80 text-sm md:text-base italic">
-               - {from}
-             </p>
-           )}
         </div>
 
         {/* --- Bottom Illustration (The Pink House) --- */}
