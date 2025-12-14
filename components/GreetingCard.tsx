@@ -155,12 +155,12 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen, to, from, message }
              </div>
              
              {/* SWIPE INSTRUCTION (Wall Sign) */}
-             <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 animate-gentle-pulse">
-                <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-lg border-2 border-[#1A2E25]/20">
-                  <p className="text-[#1A2E25] text-sm md:text-base font-medium text-center mb-1 opacity-70">
+             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-30 animate-gentle-pulse max-w-[90%] md:max-w-none">
+                <div className="bg-white/90 backdrop-blur-sm px-3 py-2 md:px-6 md:py-4 rounded-xl md:rounded-2xl shadow-lg border-2 border-[#1A2E25]/20">
+                  <p className="text-[#1A2E25] text-xs md:text-base font-medium text-center mb-0.5 md:mb-1 opacity-70">
                     To open the card
                   </p>
-                  <p className="text-[#1A2E25] text-lg md:text-xl font-bold text-center whitespace-nowrap">
+                  <p className="text-[#1A2E25] text-sm md:text-xl font-bold text-center">
                     ☝🏻 Swipe left in front of your camera
                   </p>
                 </div>

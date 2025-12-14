@@ -117,13 +117,13 @@ const GestureInstructions: React.FC<GestureInstructionsProps> = ({
 
   // Compact corner hint mode
   return (
-    <div className="fixed bottom-8 right-8 pointer-events-none z-40 animate-fade-in">
-      <div className="bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl px-5 py-4 max-w-xs">
+    <div className="fixed bottom-3 right-3 md:bottom-8 md:right-8 pointer-events-none z-40 animate-fade-in">
+      <div className="bg-black/60 backdrop-blur-lg border border-white/20 rounded-xl md:rounded-2xl shadow-xl px-2.5 py-2 md:px-5 md:py-4 max-w-[180px] md:max-w-xs">
 
         {/* Current status */}
-        <div className="mb-3">
-          <p className="text-sm font-semibold text-gray-300 mb-1">Current:</p>
-          <p className={`text-lg font-bold transition-colors ${
+        <div className="mb-2 md:mb-3">
+          <p className="text-[10px] md:text-sm font-semibold text-gray-300 mb-0.5 md:mb-1">Current:</p>
+          <p className={`text-xs md:text-lg font-bold transition-colors ${
             activeMode === GestureState.TREE ? 'text-green-400' : 'text-blue-400'
           }`}>
             {getModeText()}
@@ -131,24 +131,24 @@ const GestureInstructions: React.FC<GestureInstructionsProps> = ({
         </div>
 
         {/* Mini instructions */}
-        <div className="space-y-2 text-sm text-white/80 border-t border-white/10 pt-3">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">✋</span>
+        <div className="space-y-1 md:space-y-2 text-[10px] md:text-sm text-white/80 border-t border-white/10 pt-2 md:pt-3">
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <span className="text-sm md:text-lg">✋</span>
             <span>Open → Scatter</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">✊</span>
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <span className="text-sm md:text-lg">✊</span>
             <span>Fist → Tree</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">👉</span>
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <span className="text-sm md:text-lg">👉</span>
             <span>Point + Swipe → Close</span>
           </div>
         </div>
 
         {/* Detection indicator */}
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <p className="text-xs text-gray-400">
+        <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-white/10">
+          <p className="text-[9px] md:text-xs text-gray-400">
             {getStatusText()}
           </p>
         </div>
