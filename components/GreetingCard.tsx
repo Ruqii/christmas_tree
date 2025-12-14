@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface GreetingCardProps {
   isOpen: boolean;
@@ -27,6 +27,17 @@ const Snowflake: React.FC<{ className?: string, size?: number, opacity?: number 
 );
 
 const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen, to, from, message }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Play music when card opens
+  useEffect(() => {
+    if (isOpen && audioRef.current) {
+      audioRef.current.play().catch(error => {
+        console.log('Audio play failed:', error);
+      });
+    }
+  }, [isOpen]);
+
   return (
     <div 
       className={`absolute inset-0 z-50 flex items-center justify-center transition-all duration-1000 ease-in-out origin-left ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
@@ -165,6 +176,11 @@ const GreetingCard: React.FC<GreetingCardProps> = ({ isOpen, to, from, message }
 
         {/* Decoration Overlay (Texture) */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/snow.png')] opacity-20 pointer-events-none mix-blend-overlay" />
+
+        {/* Background Music */}
+        <audio ref={audioRef} loop>
+          <source src="/music/christmas-background-music-436117.mp3" type="audio/mpeg" />
+        </audio>
       </div>
     </div>
   );
