@@ -24,11 +24,16 @@ const CardPage: React.FC = () => {
   const [photoData, setPhotoData] = useState<string | null>(null);
   React.useEffect(() => {
     const hash = window.location.hash;
+    console.log('CardPage - URL hash:', hash);
     if (hash && hash.includes('photo=')) {
       const photoParam = hash.split('photo=')[1];
       if (photoParam) {
-        setPhotoData(decodeURIComponent(photoParam));
+        const decodedPhoto = decodeURIComponent(photoParam);
+        console.log('CardPage - Photo extracted:', decodedPhoto);
+        setPhotoData(decodedPhoto);
       }
+    } else {
+      console.log('CardPage - No photo in URL hash');
     }
   }, []);
 

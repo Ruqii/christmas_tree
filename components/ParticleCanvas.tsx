@@ -25,12 +25,22 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
 
   // Preload photo image
   useEffect(() => {
+    console.log('ParticleCanvas - photo prop received:', photo);
     if (photo) {
+      console.log('ParticleCanvas - Loading photo image from:', photo);
       const img = new Image();
+      img.crossOrigin = 'anonymous'; // Enable CORS
       img.onload = () => {
+        console.log('ParticleCanvas - Photo image loaded successfully');
         photoImageRef.current = img;
       };
+      img.onerror = (e) => {
+        console.error('ParticleCanvas - Failed to load photo image:', e);
+        console.error('ParticleCanvas - Photo URL that failed:', photo);
+      };
       img.src = photo;
+    } else {
+      console.log('ParticleCanvas - No photo provided');
     }
   }, [photo]);
 
@@ -93,7 +103,8 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
 
     // Add photo particle if photo exists (at tree top position)
     if (photo) {
-      const photoTreePos = { x: 0, y: 200, z: 0 }; // Top of tree
+      console.log('ParticleCanvas - Creating PHOTO particle at tree top');
+      const photoTreePos = { x: 0, y: 200, z: 150 }; // Top of tree, z=150 to be in front
       const photoScatterPos = generateScatterTarget();
 
       particles.push({
@@ -105,15 +116,19 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
         treeX: photoTreePos.x, treeY: photoTreePos.y, treeZ: photoTreePos.z,
         scatterX: photoScatterPos.x, scatterY: photoScatterPos.y, scatterZ: photoScatterPos.z,
         color: '#ffffff',
-        size: 25, // Larger than ornaments
+        size: 45, // Larger size - more visible when scattered
         rotation: 0,
         rotationSpeed: 0.02,
         type: 'PHOTO',
         photoData: photo
       });
+      console.log('ParticleCanvas - PHOTO particle created, total particles:', particles.length);
+    } else {
+      console.log('ParticleCanvas - No photo, skipping PHOTO particle creation');
     }
 
     particlesRef.current = particles;
+    console.log('ParticleCanvas - Particles initialized, count:', particles.length);
   }, [photo]);
 
   // Physics & Render Loop
@@ -210,7 +225,14 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
       }
 
       // --- PHASE 2: SORT BY DEPTH (Z) ---
-      particles.sort((a, b) => b.z - a.z);
+      // Sort by z-depth, but always render PHOTO particles last (on top)
+      particles.sort((a, b) => {
+        // PHOTO particles always render last (on top)
+        if (a.type === 'PHOTO' && b.type !== 'PHOTO') return 1;
+        if (b.type === 'PHOTO' && a.type !== 'PHOTO') return -1;
+        // Otherwise sort by z-depth
+        return b.z - a.z;
+      });
 
       // --- PHASE 3: RENDER ---
       for (let i = 0; i < len; i++) {

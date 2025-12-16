@@ -372,7 +372,7 @@ const GeneratorPage: React.FC = () => {
         </div>
 
         {/* Preview Link */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <p className="text-sm text-gray-500">
             Want to preview first?{' '}
             <a
@@ -382,6 +382,18 @@ const GeneratorPage: React.FC = () => {
               See a demo
             </a>
           </p>
+          {photoUrl && (
+            <p className="text-sm text-gray-500">
+              <a
+                href={`/card?to=Preview&from=You&msg=This is how your card will look!#photo=${encodeURIComponent(photoUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-400 hover:text-green-300 underline"
+              >
+                Preview with your photo
+              </a>
+            </p>
+          )}
         </div>
       </div>
     </div>
