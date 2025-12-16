@@ -227,8 +227,8 @@ const GeneratorPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205] flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205] py-12 px-4 pb-20">
+      <div className="max-w-md w-full mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
