@@ -107,14 +107,14 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photos = [] })
     if (photos && photos.length > 0) {
       console.log(`ParticleCanvas - Creating ${photos.length} PHOTO particles`);
 
-      // Define photo positions on tree (distributed across upper, middle, and lower sections)
+      // Define photo positions on tree (distributed from upper to bottom)
       // Tree shape: narrow at top, wide at bottom
       const photoPositions = [
-        { x: 0, y: 180, z: 150 },      // 1: Top center (upper)
-        { x: -70, y: 80, z: 150 },     // 2: Left middle-upper
-        { x: 70, y: 80, z: 150 },      // 3: Right middle-upper
-        { x: -90, y: -30, z: 150 },    // 4: Left middle-lower
-        { x: 90, y: -30, z: 150 },     // 5: Right middle-lower
+        { x: 0, y: 150, z: 150 },       // 1: Upper center
+        { x: -70, y: 40, z: 150 },      // 2: Left middle
+        { x: 70, y: 40, z: 150 },       // 3: Right middle
+        { x: -110, y: -80, z: 150 },    // 4: Left bottom (wider)
+        { x: 110, y: -80, z: 150 },     // 5: Right bottom (wider)
       ];
 
       photos.forEach((photoUrl, index) => {
