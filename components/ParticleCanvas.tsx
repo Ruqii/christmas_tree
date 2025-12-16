@@ -107,13 +107,14 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photos = [] })
     if (photos && photos.length > 0) {
       console.log(`ParticleCanvas - Creating ${photos.length} PHOTO particles`);
 
-      // Define photo positions on tree (distributed vertically and horizontally)
+      // Define photo positions on tree (distributed across upper, middle, and lower sections)
+      // Tree shape: narrow at top, wide at bottom
       const photoPositions = [
-        { x: 0, y: 200, z: 150 },     // 1: Top center
-        { x: -80, y: 100, z: 150 },   // 2: Left upper
-        { x: 80, y: 100, z: 150 },    // 3: Right upper
-        { x: -60, y: 0, z: 150 },     // 4: Left middle
-        { x: 60, y: 0, z: 150 },      // 5: Right middle
+        { x: 0, y: 180, z: 150 },      // 1: Top center (upper)
+        { x: -70, y: 80, z: 150 },     // 2: Left middle-upper
+        { x: 70, y: 80, z: 150 },      // 3: Right middle-upper
+        { x: -90, y: -30, z: 150 },    // 4: Left middle-lower
+        { x: 90, y: -30, z: 150 },     // 5: Right middle-lower
       ];
 
       photos.forEach((photoUrl, index) => {
@@ -129,7 +130,7 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photos = [] })
           treeX: position.x, treeY: position.y, treeZ: position.z,
           scatterX: photoScatterPos.x, scatterY: photoScatterPos.y, scatterZ: photoScatterPos.z,
           color: '#ffffff',
-          size: 45, // Larger size - more visible when scattered
+          size: 32, // Smaller in tree mode, still visible when scattered
           rotation: 0,
           rotationSpeed: 0.02,
           type: 'PHOTO',
