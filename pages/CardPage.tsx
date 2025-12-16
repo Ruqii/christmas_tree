@@ -20,6 +20,18 @@ const CardPage: React.FC = () => {
   const from = searchParams.get('from') || '';
   const message = searchParams.get('msg') || '';
 
+  // Extract photo from URL hash
+  const [photoData, setPhotoData] = useState<string | null>(null);
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('photo=')) {
+      const photoParam = hash.split('photo=')[1];
+      if (photoParam) {
+        setPhotoData(decodeURIComponent(photoParam));
+      }
+    }
+  }, []);
+
   // Show instructions when card opens (in gesture control mode)
   React.useEffect(() => {
     if (isCardOpen && !fallbackMode) {
@@ -116,7 +128,7 @@ const CardPage: React.FC = () => {
 
       {/* --- LAYER 1: Particle System (Always Rendered) --- */}
       <div className={`absolute inset-0 transition-opacity duration-1000 ${isCardOpen ? 'opacity-100' : 'opacity-0'}`}>
-        <ParticleCanvas gesture={activeMode} />
+        <ParticleCanvas gesture={activeMode} photo={photoData} />
 
         {/* Particle UI Overlay - Only show when card is open */}
         <div className={`transition-opacity duration-500 ${isCardOpen ? 'opacity-100' : 'opacity-0'}`}>

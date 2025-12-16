@@ -4,6 +4,7 @@ import { generateTreeTarget, generateScatterTarget, generateStarTarget, randomRa
 
 interface ParticleCanvasProps {
   gesture: GestureState;
+  photo?: string | null;
 }
 
 const PARTICLE_COUNT = 1800;
@@ -14,12 +15,24 @@ const LEAF_COLORS = ['#0f3d0f', '#1a5c1a', '#004d00', '#2e8b57', '#083808'];
 const GIFT_COLORS = ['#d32f2f', '#1976d2', '#fbc02d', '#7b1fa2', '#ffffff']; 
 const RIBBON_COLORS = ['#ffd700', '#ffffff', '#ff0000']; 
 
-const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture }) => {
+const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
   const rotationRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
+  const photoImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload photo image
+  useEffect(() => {
+    if (photo) {
+      const img = new Image();
+      img.onload = () => {
+        photoImageRef.current = img;
+      };
+      img.src = photo;
+    }
+  }, [photo]);
 
   // Initialize System
   useEffect(() => {
@@ -77,8 +90,31 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture }) => {
         type
       });
     }
+
+    // Add photo particle if photo exists (at tree top position)
+    if (photo) {
+      const photoTreePos = { x: 0, y: 200, z: 0 }; // Top of tree
+      const photoScatterPos = generateScatterTarget();
+
+      particles.push({
+        x: photoScatterPos.x,
+        y: photoScatterPos.y,
+        z: photoScatterPos.z,
+        vx: 0, vy: 0, vz: 0,
+        tx: photoScatterPos.x, ty: photoScatterPos.y, tz: photoScatterPos.z,
+        treeX: photoTreePos.x, treeY: photoTreePos.y, treeZ: photoTreePos.z,
+        scatterX: photoScatterPos.x, scatterY: photoScatterPos.y, scatterZ: photoScatterPos.z,
+        color: '#ffffff',
+        size: 25, // Larger than ornaments
+        rotation: 0,
+        rotationSpeed: 0.02,
+        type: 'PHOTO',
+        photoData: photo
+      });
+    }
+
     particlesRef.current = particles;
-  }, []);
+  }, [photo]);
 
   // Physics & Render Loop
   useEffect(() => {
@@ -265,8 +301,27 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture }) => {
                }
                ctx.closePath();
                ctx.fill();
-               
+
                // Removed Cross Lines
+
+            } else if (p.type === 'PHOTO' && photoImageRef.current) {
+               // --- PHOTO ORNAMENT ---
+
+               // Draw white border/frame
+               ctx.fillStyle = '#ffffff';
+               ctx.shadowBlur = 15 * scale;
+               ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+               ctx.fillRect(-s * 1.15, -s * 1.15, s * 2.3, s * 2.3);
+               ctx.shadowBlur = 0;
+
+               // Draw photo
+               ctx.save();
+               // Clip to photo area
+               ctx.beginPath();
+               ctx.rect(-s, -s, s * 2, s * 2);
+               ctx.clip();
+               ctx.drawImage(photoImageRef.current, -s, -s, s * 2, s * 2);
+               ctx.restore();
             }
 
             ctx.restore();

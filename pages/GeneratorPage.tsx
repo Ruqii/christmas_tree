@@ -16,6 +16,8 @@ const GeneratorPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
   const [cancelled, setCancelled] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
 
   // Handle payment success callback from Stripe
   useEffect(() => {
@@ -87,6 +89,7 @@ const GeneratorPage: React.FC = () => {
           recipientName,
           senderName,
           message,
+          photoUrl,
         }),
       });
 
@@ -108,6 +111,57 @@ const GeneratorPage: React.FC = () => {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB - server will handle compression)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image must be smaller than 10MB');
+      return;
+    }
+
+    setPhotoLoading(true);
+    setError(null);
+
+    try {
+      console.log('Uploading image to server:', file.name, file.type, file.size);
+
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      // Upload to server for conversion
+      const response = await fetch('/api/convert-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload image');
+      }
+
+      console.log('Server processed image:', data);
+
+      // Store the public URL
+      setPhotoUrl(data.url);
+    } catch (err: any) {
+      console.error('Photo upload error:', err);
+      const errorMsg = err.message || 'Failed to process image';
+      setError(`Failed to upload image: ${errorMsg}. Please try a different photo.`);
+    } finally {
+      setPhotoLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setRecipientEmail('');
     setRecipientName('');
@@ -117,6 +171,7 @@ const GeneratorPage: React.FC = () => {
     setError(null);
     setCardUrl(null);
     setCancelled(false);
+    setPhotoUrl(null);
   };
 
   // Show sending state after payment
@@ -248,6 +303,43 @@ const GeneratorPage: React.FC = () => {
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                 placeholder="Write your holiday wishes here (optional)..."
               />
+            </div>
+
+            {/* Photo Upload */}
+            <div>
+              <label htmlFor="photo" className="block text-sm font-medium text-gray-300 mb-1">
+                Add a Photo (optional)
+              </label>
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  id="photo"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-500 file:cursor-pointer"
+                />
+                <p className="text-xs text-gray-500 mt-1">Supports all photo formats including iPhone HEIC (max 10MB)</p>
+                {photoLoading && (
+                  <p className="text-sm text-gray-400">Uploading and processing image...</p>
+                )}
+                {photoUrl && !photoLoading && (
+                  <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm text-green-300 font-medium">Photo uploaded successfully</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoUrl(null)}
+                      className="text-sm text-red-400 hover:text-red-300 underline whitespace-nowrap"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Cancelled Message */}

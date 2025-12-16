@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Extract payload
-    const { recipientEmail, recipientName, senderName, message } = session.payload;
+    const { recipientEmail, recipientName, senderName, message, photoUrl } = session.payload;
 
     // Basic validation
     if (!recipientEmail || !recipientName || !senderName) {
@@ -81,7 +81,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       urlParams.append('msg', sanitizedMessage);
     }
 
-    const cardUrl = `${baseUrl}/card?${urlParams}`;
+    // Add photo if exists (as URL hash to avoid length limits)
+    let cardUrl = `${baseUrl}/card?${urlParams}`;
+    if (photoUrl) {
+      cardUrl += `#photo=${encodeURIComponent(photoUrl)}`;
+    }
 
     // Background image URL - use base URL
     const bgImageUrl = `${baseUrl}/email-assets/email-bg.jpg`;
@@ -159,6 +163,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #4A4A4A; text-align: center;">
                           Sent with ❤️ from <strong style="color: #2E2E2E;">${sanitizedSenderName}</strong>
                         </p>
+
+                        <!-- Divider -->
+                        <div style="margin: 30px auto; width: 60px; height: 1px; background: linear-gradient(to right, transparent, #d4af37, transparent);"></div>
+
+                        <!-- Promotional Section -->
+                        <div style="text-align: center; margin-top: 25px;">
+                          <p style="margin: 0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #5A5A5A; font-weight: 500;">
+                            Spread the holiday magic ✨
+                          </p>
+                          <p style="margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.5; color: #6B6B6B;">
+                            Create and send your own card 🎄
+                          </p>
+                          <a href="https://christmas-tree-jade.vercel.app" target="_blank" style="display: inline-block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #d4af37; text-decoration: none; font-weight: 500; padding: 8px 16px; border: 1px solid #d4af37; border-radius: 20px; transition: all 0.3s ease;">
+                            christmas-tree-jade.vercel.app
+                          </a>
+                        </div>
 
                       </td>
                     </tr>

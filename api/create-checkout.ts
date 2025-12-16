@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { recipientEmail, recipientName, senderName, message } = req.body;
+    const { recipientEmail, recipientName, senderName, message, photoUrl } = req.body;
 
     // Validation
     if (!recipientEmail || !recipientName || !senderName) {
@@ -41,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           recipientName,
           senderName,
           message: message || '',
+          photoUrl: photoUrl || null,
         },
         status: 'pending',
       })

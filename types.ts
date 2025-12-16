@@ -30,10 +30,11 @@ export interface Particle {
   rotationSpeed: number;
   
   // New Visual Types
-  type: 'LEAF' | 'GIFT' | 'CANE' | 'RING' | 'STAR';
-  
+  type: 'LEAF' | 'GIFT' | 'CANE' | 'RING' | 'STAR' | 'PHOTO';
+
   // Specific visual props
   secondaryColor?: string; // For ribbons on gifts
+  photoData?: string; // Base64 image data for PHOTO type
 }
 
 export interface Point3D {
