@@ -16,8 +16,9 @@ const GeneratorPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
   const [cancelled, setCancelled] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const MAX_PHOTOS = 5;
 
   // Handle payment success callback from Stripe
   useEffect(() => {
@@ -89,7 +90,7 @@ const GeneratorPage: React.FC = () => {
           recipientName,
           senderName,
           message,
-          photoUrl,
+          photoUrls,
         }),
       });
 
@@ -112,18 +113,12 @@ const GeneratorPage: React.FC = () => {
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
-      return;
-    }
-
-    // Validate file size (max 10MB - server will handle compression)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Image must be smaller than 10MB');
+    // Check if adding these files would exceed the limit
+    if (photoUrls.length + files.length > MAX_PHOTOS) {
+      setError(`You can only upload up to ${MAX_PHOTOS} photos. Currently you have ${photoUrls.length}.`);
       return;
     }
 
@@ -131,35 +126,57 @@ const GeneratorPage: React.FC = () => {
     setError(null);
 
     try {
-      console.log('Uploading image to server:', file.name, file.type, file.size);
+      const uploadPromises = Array.from(files).map(async (file) => {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error(`${file.name} is not an image file`);
+        }
 
-      // Create FormData for multipart upload
-      const formData = new FormData();
-      formData.append('photo', file);
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`${file.name} is larger than 10MB`);
+        }
 
-      // Upload to server for conversion
-      const response = await fetch('/api/convert-image', {
-        method: 'POST',
-        body: formData,
+        console.log('Uploading image to server:', file.name, file.type, file.size);
+
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        // Upload to server for conversion
+        const response = await fetch('/api/convert-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to upload image');
+        }
+
+        console.log('Server processed image:', data);
+        return data.url;
       });
 
-      const data = await response.json();
+      // Wait for all uploads to complete
+      const newUrls = await Promise.all(uploadPromises);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to upload image');
-      }
-
-      console.log('Server processed image:', data);
-
-      // Store the public URL
-      setPhotoUrl(data.url);
+      // Add new URLs to existing array
+      setPhotoUrls(prev => [...prev, ...newUrls]);
     } catch (err: any) {
       console.error('Photo upload error:', err);
       const errorMsg = err.message || 'Failed to process image';
       setError(`Failed to upload image: ${errorMsg}. Please try a different photo.`);
     } finally {
       setPhotoLoading(false);
+      // Clear the input so the same file can be uploaded again
+      e.target.value = '';
     }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const resetForm = () => {
@@ -171,7 +188,7 @@ const GeneratorPage: React.FC = () => {
     setError(null);
     setCardUrl(null);
     setCancelled(false);
-    setPhotoUrl(null);
+    setPhotoUrls([]);
   };
 
   // Show sending state after payment
@@ -308,35 +325,43 @@ const GeneratorPage: React.FC = () => {
             {/* Photo Upload */}
             <div>
               <label htmlFor="photo" className="block text-sm font-medium text-gray-300 mb-1">
-                Add a Photo (optional)
+                Add Photos (optional, up to {MAX_PHOTOS})
               </label>
               <div className="space-y-3">
                 <input
                   type="file"
                   id="photo"
                   accept="image/*"
+                  multiple
                   onChange={handlePhotoUpload}
-                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-500 file:cursor-pointer"
+                  disabled={photoUrls.length >= MAX_PHOTOS}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-500 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-500 mt-1">Supports all photo formats including iPhone HEIC (max 10MB)</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Supports all photo formats including iPhone HEIC (max 10MB each). {photoUrls.length}/{MAX_PHOTOS} uploaded
+                </p>
                 {photoLoading && (
-                  <p className="text-sm text-gray-400">Uploading and processing image...</p>
+                  <p className="text-sm text-gray-400">Uploading and processing images...</p>
                 )}
-                {photoUrl && !photoLoading && (
-                  <div className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                    <div className="flex items-center gap-2 flex-1">
-                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm text-green-300 font-medium">Photo uploaded successfully</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPhotoUrl(null)}
-                      className="text-sm text-red-400 hover:text-red-300 underline whitespace-nowrap"
-                    >
-                      Remove
-                    </button>
+                {photoUrls.length > 0 && !photoLoading && (
+                  <div className="space-y-2">
+                    {photoUrls.map((url, index) => (
+                      <div key={index} className="flex items-center gap-3 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="text-sm text-green-300 font-medium">Photo {index + 1} uploaded</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="text-sm text-red-400 hover:text-red-300 underline whitespace-nowrap"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -382,15 +407,15 @@ const GeneratorPage: React.FC = () => {
               See a demo
             </a>
           </p>
-          {photoUrl && (
+          {photoUrls.length > 0 && (
             <p className="text-sm text-gray-500">
               <a
-                href={`/card?to=Preview&from=You&msg=This is how your card will look!#photo=${encodeURIComponent(photoUrl)}`}
+                href={`/card?to=Preview&from=You&msg=This is how your card will look!#photos=${encodeURIComponent(photoUrls.join(','))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-400 hover:text-green-300 underline"
               >
-                Preview with your photo
+                Preview with your {photoUrls.length} photo{photoUrls.length > 1 ? 's' : ''}
               </a>
             </p>
           )}

@@ -4,7 +4,7 @@ import { generateTreeTarget, generateScatterTarget, generateStarTarget, randomRa
 
 interface ParticleCanvasProps {
   gesture: GestureState;
-  photo?: string | null;
+  photos?: string[];
 }
 
 const PARTICLE_COUNT = 1800;
@@ -15,34 +15,36 @@ const LEAF_COLORS = ['#0f3d0f', '#1a5c1a', '#004d00', '#2e8b57', '#083808'];
 const GIFT_COLORS = ['#d32f2f', '#1976d2', '#fbc02d', '#7b1fa2', '#ffffff']; 
 const RIBBON_COLORS = ['#ffd700', '#ffffff', '#ff0000']; 
 
-const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
+const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photos = [] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
   const rotationRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
-  const photoImageRef = useRef<HTMLImageElement | null>(null);
+  const photoImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
-  // Preload photo image
+  // Preload photo images
   useEffect(() => {
-    console.log('ParticleCanvas - photo prop received:', photo);
-    if (photo) {
-      console.log('ParticleCanvas - Loading photo image from:', photo);
-      const img = new Image();
-      img.crossOrigin = 'anonymous'; // Enable CORS
-      img.onload = () => {
-        console.log('ParticleCanvas - Photo image loaded successfully');
-        photoImageRef.current = img;
-      };
-      img.onerror = (e) => {
-        console.error('ParticleCanvas - Failed to load photo image:', e);
-        console.error('ParticleCanvas - Photo URL that failed:', photo);
-      };
-      img.src = photo;
+    console.log('ParticleCanvas - photos prop received:', photos);
+    if (photos && photos.length > 0) {
+      photos.forEach((photoUrl, index) => {
+        console.log(`ParticleCanvas - Loading photo ${index + 1}/${photos.length} from:`, photoUrl);
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // Enable CORS
+        img.onload = () => {
+          console.log(`ParticleCanvas - Photo ${index + 1} loaded successfully`);
+          photoImagesRef.current.set(photoUrl, img);
+        };
+        img.onerror = (e) => {
+          console.error(`ParticleCanvas - Failed to load photo ${index + 1}:`, e);
+          console.error('ParticleCanvas - Photo URL that failed:', photoUrl);
+        };
+        img.src = photoUrl;
+      });
     } else {
-      console.log('ParticleCanvas - No photo provided');
+      console.log('ParticleCanvas - No photos provided');
     }
-  }, [photo]);
+  }, [photos]);
 
   // Initialize System
   useEffect(() => {
@@ -101,35 +103,48 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
       });
     }
 
-    // Add photo particle if photo exists (at tree top position)
-    if (photo) {
-      console.log('ParticleCanvas - Creating PHOTO particle at tree top');
-      const photoTreePos = { x: 0, y: 200, z: 150 }; // Top of tree, z=150 to be in front
-      const photoScatterPos = generateScatterTarget();
+    // Add photo particles if photos exist
+    if (photos && photos.length > 0) {
+      console.log(`ParticleCanvas - Creating ${photos.length} PHOTO particles`);
 
-      particles.push({
-        x: photoScatterPos.x,
-        y: photoScatterPos.y,
-        z: photoScatterPos.z,
-        vx: 0, vy: 0, vz: 0,
-        tx: photoScatterPos.x, ty: photoScatterPos.y, tz: photoScatterPos.z,
-        treeX: photoTreePos.x, treeY: photoTreePos.y, treeZ: photoTreePos.z,
-        scatterX: photoScatterPos.x, scatterY: photoScatterPos.y, scatterZ: photoScatterPos.z,
-        color: '#ffffff',
-        size: 45, // Larger size - more visible when scattered
-        rotation: 0,
-        rotationSpeed: 0.02,
-        type: 'PHOTO',
-        photoData: photo
+      // Define photo positions on tree (distributed vertically and horizontally)
+      const photoPositions = [
+        { x: 0, y: 200, z: 150 },     // 1: Top center
+        { x: -80, y: 100, z: 150 },   // 2: Left upper
+        { x: 80, y: 100, z: 150 },    // 3: Right upper
+        { x: -60, y: 0, z: 150 },     // 4: Left middle
+        { x: 60, y: 0, z: 150 },      // 5: Right middle
+      ];
+
+      photos.forEach((photoUrl, index) => {
+        const position = photoPositions[index % photoPositions.length];
+        const photoScatterPos = generateScatterTarget();
+
+        particles.push({
+          x: photoScatterPos.x,
+          y: photoScatterPos.y,
+          z: photoScatterPos.z,
+          vx: 0, vy: 0, vz: 0,
+          tx: photoScatterPos.x, ty: photoScatterPos.y, tz: photoScatterPos.z,
+          treeX: position.x, treeY: position.y, treeZ: position.z,
+          scatterX: photoScatterPos.x, scatterY: photoScatterPos.y, scatterZ: photoScatterPos.z,
+          color: '#ffffff',
+          size: 45, // Larger size - more visible when scattered
+          rotation: 0,
+          rotationSpeed: 0.02,
+          type: 'PHOTO',
+          photoData: photoUrl
+        });
       });
-      console.log('ParticleCanvas - PHOTO particle created, total particles:', particles.length);
+
+      console.log('ParticleCanvas - PHOTO particles created, total particles:', particles.length);
     } else {
-      console.log('ParticleCanvas - No photo, skipping PHOTO particle creation');
+      console.log('ParticleCanvas - No photos, skipping PHOTO particle creation');
     }
 
     particlesRef.current = particles;
     console.log('ParticleCanvas - Particles initialized, count:', particles.length);
-  }, [photo]);
+  }, [photos]);
 
   // Physics & Render Loop
   useEffect(() => {
@@ -326,24 +341,26 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({ gesture, photo }) => {
 
                // Removed Cross Lines
 
-            } else if (p.type === 'PHOTO' && photoImageRef.current) {
+            } else if (p.type === 'PHOTO' && p.photoData) {
                // --- PHOTO ORNAMENT ---
+               const photoImage = photoImagesRef.current.get(p.photoData);
+               if (photoImage) {
+                 // Draw white border/frame
+                 ctx.fillStyle = '#ffffff';
+                 ctx.shadowBlur = 15 * scale;
+                 ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+                 ctx.fillRect(-s * 1.15, -s * 1.15, s * 2.3, s * 2.3);
+                 ctx.shadowBlur = 0;
 
-               // Draw white border/frame
-               ctx.fillStyle = '#ffffff';
-               ctx.shadowBlur = 15 * scale;
-               ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-               ctx.fillRect(-s * 1.15, -s * 1.15, s * 2.3, s * 2.3);
-               ctx.shadowBlur = 0;
-
-               // Draw photo
-               ctx.save();
-               // Clip to photo area
-               ctx.beginPath();
-               ctx.rect(-s, -s, s * 2, s * 2);
-               ctx.clip();
-               ctx.drawImage(photoImageRef.current, -s, -s, s * 2, s * 2);
-               ctx.restore();
+                 // Draw photo
+                 ctx.save();
+                 // Clip to photo area
+                 ctx.beginPath();
+                 ctx.rect(-s, -s, s * 2, s * 2);
+                 ctx.clip();
+                 ctx.drawImage(photoImage, -s, -s, s * 2, s * 2);
+                 ctx.restore();
+               }
             }
 
             ctx.restore();

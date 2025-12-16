@@ -4,6 +4,7 @@ import ParticleCanvas from '../components/ParticleCanvas';
 import GestureController from '../components/GestureController';
 import GreetingCard from '../components/GreetingCard';
 import GestureInstructions from '../components/GestureInstructions';
+import PerformanceMonitor from '../components/PerformanceMonitor';
 import { GestureState } from '../types';
 
 const CardPage: React.FC = () => {
@@ -19,21 +20,34 @@ const CardPage: React.FC = () => {
   const to = searchParams.get('to') || 'Friend';
   const from = searchParams.get('from') || '';
   const message = searchParams.get('msg') || '';
+  const showPerf = searchParams.get('perf') === 'true'; // Add ?perf=true to URL to show monitor
+  console.log('CardPage - showPerf:', showPerf, 'perf param:', searchParams.get('perf'));
 
-  // Extract photo from URL hash
-  const [photoData, setPhotoData] = useState<string | null>(null);
+  // Extract photos from URL hash (supports both single 'photo=' and multiple 'photos=')
+  const [photoData, setPhotoData] = useState<string[]>([]);
   React.useEffect(() => {
     const hash = window.location.hash;
     console.log('CardPage - URL hash:', hash);
-    if (hash && hash.includes('photo=')) {
+
+    if (hash && hash.includes('photos=')) {
+      // Multiple photos (comma-separated)
+      const photosParam = hash.split('photos=')[1];
+      if (photosParam) {
+        const decodedPhotos = decodeURIComponent(photosParam);
+        const photoArray = decodedPhotos.split(',').filter(url => url.trim());
+        console.log('CardPage - Photos extracted:', photoArray);
+        setPhotoData(photoArray);
+      }
+    } else if (hash && hash.includes('photo=')) {
+      // Single photo (backward compatibility)
       const photoParam = hash.split('photo=')[1];
       if (photoParam) {
         const decodedPhoto = decodeURIComponent(photoParam);
-        console.log('CardPage - Photo extracted:', decodedPhoto);
-        setPhotoData(decodedPhoto);
+        console.log('CardPage - Single photo extracted:', decodedPhoto);
+        setPhotoData([decodedPhoto]);
       }
     } else {
-      console.log('CardPage - No photo in URL hash');
+      console.log('CardPage - No photos in URL hash');
     }
   }, []);
 
@@ -131,9 +145,12 @@ const CardPage: React.FC = () => {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-b from-[#020205] via-[#0a0f20] to-[#020205]">
 
+      {/* Performance Monitor - Add ?perf=true to URL to show */}
+      <PerformanceMonitor enabled={showPerf} particleCount={1800 + photoData.length} />
+
       {/* --- LAYER 1: Particle System (Always Rendered) --- */}
       <div className={`absolute inset-0 transition-opacity duration-1000 ${isCardOpen ? 'opacity-100' : 'opacity-0'}`}>
-        <ParticleCanvas gesture={activeMode} photo={photoData} />
+        <ParticleCanvas gesture={activeMode} photos={photoData} />
 
         {/* Particle UI Overlay - Only show when card is open */}
         <div className={`transition-opacity duration-500 ${isCardOpen ? 'opacity-100' : 'opacity-0'}`}>

@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { recipientEmail, recipientName, senderName, message, photoUrl } = req.body;
+    const { recipientEmail, recipientName, senderName, message, photoUrls } = req.body;
 
     // Validation
     if (!recipientEmail || !recipientName || !senderName) {
@@ -32,6 +32,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid email address' });
     }
 
+    // Validate photoUrls if provided
+    const validPhotoUrls = Array.isArray(photoUrls) ? photoUrls.slice(0, 5) : [];
+
     // Create session record in Supabase
     const { data: sessionRecord, error: dbError } = await supabase
       .from('ecard_sessions')
@@ -41,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           recipientName,
           senderName,
           message: message || '',
-          photoUrl: photoUrl || null,
+          photoUrls: validPhotoUrls,
         },
         status: 'pending',
       })

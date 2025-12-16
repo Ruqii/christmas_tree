@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Extract payload
-    const { recipientEmail, recipientName, senderName, message, photoUrl } = session.payload;
+    const { recipientEmail, recipientName, senderName, message, photoUrls } = session.payload;
 
     // Basic validation
     if (!recipientEmail || !recipientName || !senderName) {
@@ -81,10 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       urlParams.append('msg', sanitizedMessage);
     }
 
-    // Add photo if exists (as URL hash to avoid length limits)
+    // Add photos if exist (as URL hash to avoid length limits)
     let cardUrl = `${baseUrl}/card?${urlParams}`;
-    if (photoUrl) {
-      cardUrl += `#photo=${encodeURIComponent(photoUrl)}`;
+    if (Array.isArray(photoUrls) && photoUrls.length > 0) {
+      cardUrl += `#photos=${encodeURIComponent(photoUrls.join(','))}`;
     }
 
     // Background image URL - use base URL
